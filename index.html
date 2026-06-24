@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico SEV — ADMA GEO</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --navy:   #19282F;
+    --orange: #F16C03;
+    --teal:   #02A0A1;
+    --teal2:  #017d7e;
+    --white:  #FFFFFF;
+    --offwhite: #F4F8F9;
+    --gray:   #8898A8;
+    --light:  #E0EEF0;
+    --dark:   #0f1e24;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--offwhite);
+    min-height: 100vh;
+    color: var(--navy);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 22px 32px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border-bottom: 4px solid var(--orange);
+  }
+  .header-logo {
+    width: 52px; height: 52px;
+    background: var(--teal);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 900; color: white; letter-spacing:-1px;
+  }
+  .header-text h1 { color:white; font-size:1.35rem; font-weight:700; }
+  .header-text p  { color:var(--teal); font-size:0.82rem; letter-spacing:.06em; margin-top:2px; }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 20px 60px;
+  }
+
+  .intro {
+    background: var(--navy);
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 32px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .intro::before {
+    content:'';
+    position:absolute; top:-40px; right:-40px;
+    width:200px; height:200px;
+    border-radius:50%;
+    background: var(--teal);
+    opacity:.08;
+  }
+  .intro h2 { font-size:1.5rem; font-weight:800; margin-bottom:8px; }
+  .intro p  { color:#b0c8cc; font-size:.95rem; line-height:1.6; }
+  .intro .tag {
+    display:inline-block;
+    background:var(--orange);
+    color:white;
+    font-size:.72rem;
+    font-weight:700;
+    padding:3px 10px;
+    border-radius:20px;
+    letter-spacing:.08em;
+    margin-bottom:12px;
+  }
+
+  /* ── STEP ── */
+  .step {
+    background: white;
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 12px rgba(13,40,47,.07);
+    transition: border-color .3s;
+  }
+  .step.active { border-color: var(--teal); }
+  .step-label {
+    font-size:.72rem; font-weight:700; color:var(--teal);
+    letter-spacing:.1em; margin-bottom:6px;
+  }
+  .step h3 { font-size:1.1rem; font-weight:700; margin-bottom:18px; }
+
+  /* ── CATEGORY GRID ── */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .cat-btn {
+    padding: 16px 10px;
+    border: 2px solid var(--light);
+    border-radius: 12px;
+    background: var(--offwhite);
+    cursor: pointer;
+    text-align: center;
+    transition: all .2s;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .cat-btn .icon { font-size: 1.8rem; display:block; margin-bottom:6px; }
+  .cat-btn:hover { border-color:var(--teal); background:var(--light); }
+  .cat-btn.selected {
+    border-color: var(--orange);
+    background: #fff5ec;
+    color: var(--orange);
+  }
+
+  /* ── PROBLEM LIST ── */
+  .prob-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .prob-btn {
+    padding: 14px 18px;
+    border: 2px solid var(--light);
+    border-radius: 10px;
+    background: var(--offwhite);
+    cursor: pointer;
+    text-align: left;
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--navy);
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .prob-btn .pb-icon { font-size:1.2rem; flex-shrink:0; }
+  .prob-btn:hover { border-color:var(--teal); background:var(--light); }
+  .prob-btn.selected {
+    border-color: var(--orange);
+    background: #fff5ec;
+    font-weight: 700;
+  }
+  .prob-btn.selected .pb-icon::after { content:' ✓'; }
+
+  /* ── TEXTAREA ── */
+  .desc-area {
+    width:100%;
+    min-height:100px;
+    border: 2px solid var(--light);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: .92rem;
+    font-family: inherit;
+    color: var(--navy);
+    resize: vertical;
+    transition: border-color .2s;
+    background: var(--offwhite);
+  }
+  .desc-area:focus { outline:none; border-color:var(--teal); background:white; }
+  .char-hint { font-size:.78rem; color:var(--gray); margin-top:6px; }
+
+  /* ── HIDDEN/VISIBLE ── */
+  .hidden { display:none !important; }
+  .fade-in {
+    animation: fadeUp .4s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── SOLUTION CARD ── */
+  .solution-card {
+    background: var(--navy);
+    border-radius: 16px;
+    padding: 30px 32px;
+    margin-bottom: 20px;
+    color: white;
+    border-left: 5px solid var(--teal);
+  }
+  .solution-card h3 {
+    font-size:1.2rem; font-weight:800; margin-bottom:6px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .solution-card .sol-sub {
+    color: var(--teal); font-size:.85rem; margin-bottom:20px;
+  }
+  .sol-items { display:flex; flex-direction:column; gap:10px; }
+  .sol-item {
+    display:flex; align-items:center; gap:12px;
+    background: rgba(2,160,161,.1);
+    border-radius: 10px;
+    padding: 11px 16px;
+  }
+  .sol-item .si-check {
+    color:var(--teal);
+    font-size:1.1rem;
+    flex-shrink:0;
+  }
+  .sol-item .si-text { font-size:.95rem; line-height:1.4; color:#ddeef0; }
+  .sol-item .si-title { font-weight:700; color:white; display:block; }
+
+  .entregables {
+    margin-top:18px;
+    background:rgba(241,108,3,.12);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .entregables h4 {
+    color:var(--orange); font-size:.82rem; letter-spacing:.08em;
+    font-weight:700; margin-bottom:10px;
+  }
+  .ent-list {
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .ent-tag {
+    background:rgba(241,108,3,.18);
+    color:#ffd9b0;
+    font-size:.78rem; font-weight:600;
+    padding:4px 12px; border-radius:20px;
+  }
+
+  /* ── CTA BUTTON ── */
+  .cta-wrap { text-align:center; margin-top:28px; }
+  .cta-btn {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:var(--orange);
+    color:white;
+    font-size:1rem;
+    font-weight:700;
+    padding:16px 36px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    text-decoration:none;
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 4px 18px rgba(241,108,3,.35);
+  }
+  .cta-btn:hover {
+    transform:translateY(-2px);
+    box-shadow: 0 8px 26px rgba(241,108,3,.45);
+  }
+  .cta-btn .wa-icon { font-size:1.3rem; }
+
+  .cta-note {
+    margin-top:10px;
+    font-size:.8rem;
+    color:var(--gray);
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    height:4px;
+    background:var(--light);
+    border-radius:4px;
+    margin-bottom:28px;
+    overflow:hidden;
+  }
+  .progress-fill {
+    height:100%;
+    background:linear-gradient(90deg, var(--teal), var(--orange));
+    border-radius:4px;
+    transition: width .4s ease;
+  }
+
+  /* ── RESET ── */
+  .reset-btn {
+    background:none;
+    border:none;
+    color:var(--gray);
+    font-size:.82rem;
+    cursor:pointer;
+    margin-top:8px;
+    text-decoration:underline;
+  }
+  .reset-btn:hover { color:var(--navy); }
+
+  /* ── OTRO INPUT ── */
+  .otro-input {
+    width:100%;
+    border:2px solid var(--light);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:.9rem;
+    font-family:inherit;
+    margin-top:10px;
+    transition:border-color .2s;
+  }
+  .otro-input:focus { outline:none; border-color:var(--teal); }
+
+  footer {
+    text-align:center;
+    padding:24px;
+    color:var(--gray);
+    font-size:.8rem;
+    border-top:1px solid var(--light);
+    margin-top:20px;
+  }
+  footer span { color:var(--teal); font-weight:600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">AG</div>
+  <div class="header-text">
+    <h1>ADMA GEO | Soluciones Geológicas</h1>
+    <p>SONDEOS ELÉCTRICOS VERTICALES · SAN LUIS POTOSÍ, SLP</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="intro">
+    <span class="tag">DIAGNÓSTICO SEV GRATUITO</span>
+    <h2>¿No sabes qué estudio necesita tu proyecto?</h2>
+    <p>Cuéntanos tu situación en 3 pasos y te mostramos si un <strong>Sondeo Eléctrico Vertical (SEV)</strong> puede darte la información del subsuelo que necesitas — sin tecnicismos, sin compromiso.</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:10%"></div>
+  </div>
+
+  <!-- ══ PASO 1: Categoría ══ -->
+  <div class="step active fade-in" id="step1">
+    <div class="step-label">PASO 1 DE 3</div>
+    <h3>¿Cuál es el área de tu proyecto?</h3>
+    <div class="cat-grid" id="catGrid">
+      <button class="cat-btn" onclick="selectCat('agua')" id="cat-agua">
+        <span class="icon">💧</span>Agua / Pozos
+      </button>
+      <button class="cat-btn" onclick="selectCat('mineria')" id="cat-mineria">
+        <span class="icon">⛏️</span>Minería
+      </button>
+      <button class="cat-btn" onclick="selectCat('civil')" id="cat-civil">
+        <span class="icon">🏗️</span>Obra Civil
+      </button>
+      <button class="cat-btn" onclick="selectCat('geotecnia')" id="cat-geotecnia">
+        <span class="icon">🪨</span>Geotecnia
+      </button>
+      <button class="cat-btn" onclick="selectCat('ambiental')" id="cat-ambiental">
+        <span class="icon">🌿</span>Ambiental
+      </button>
+      <button class="cat-btn" onclick="selectCat('energia')" id="cat-energia">
+        <span class="icon">⚡</span>Energía
+      </button>
+      <button class="cat-btn" onclick="selectCat('gas')" id="cat-gas">
+        <span class="icon">🔥</span>Gas Natural e Hidrocarburos
+      </button>
+      <button class="cat-btn" onclick="selectCat('otro')" id="cat-otro">
+        <span class="icon">🔍</span>Otro
+      </button>
+    </div>
+    <input class="otro-input hidden" id="otroInput" type="text"
+           placeholder="Describe brevemente tu área o industria..." />
+    <div style="margin-top:16px; display:flex; align-items:flex-start; gap:10px; background:#fff8f0; border:1.5px solid #f7c98a; border-radius:10px; padding:12px 16px;">
+      <span style="font-size:1.2rem; flex-shrink:0;">💡</span>
+      <span style="font-size:.85rem; color:#7a4a10; line-height:1.55;">
+        <strong>¿No encuentras exactamente tu caso?</strong> Selecciona la opción que más se acerque a tu proyecto —
+        en el último paso podrás describir tu situación completa con tus propias palabras.
+      </span>
+    </div>
+  </div>
+
+  <!-- ══ PASO 2: Problema específico ══ -->
+  <div class="step hidden" id="step2">
+    <div class="step-label">PASO 2 DE 3</div>
+    <h3 id="step2Title">¿Cuál es tu problema específico?</h3>
+    <div class="prob-list" id="probList"></div>
+    <div style="margin-top:14px; display:flex; align-items:flex-start; gap:10px; background:#fff8f0; border:1.5px solid #f7c98a; border-radius:10px; padding:12px 16px;">
+      <span style="font-size:1.2rem; flex-shrink:0;">💡</span>
+      <span style="font-size:.85rem; color:#7a4a10; line-height:1.55;">
+        <strong>¿Ninguna opción describe exactamente tu problema?</strong> Elige la que más se acerque
+        y en el siguiente paso escribe con detalle lo que necesitas — nuestro equipo lo revisará personalmente.
+      </span>
+    </div>
+    <button class="reset-btn" onclick="goBack(1)">← Cambiar categoría</button>
+  </div>
+
+  <!-- ══ PASO 3: Descripción ══ -->
+  <div class="step hidden" id="step3">
+    <div class="step-label">PASO 3 DE 3</div>
+    <h3>Describe tu situación</h3>
+    <div style="margin-bottom:12px; display:flex; align-items:flex-start; gap:10px; background:#e8f7f7; border:1.5px solid #02A0A1; border-radius:10px; padding:12px 16px;">
+      <span style="font-size:1.2rem; flex-shrink:0;">✏️</span>
+      <span style="font-size:.85rem; color:#015f60; line-height:1.6;">
+        <strong>Si las opciones anteriores no describen exactamente tu caso, aquí puedes contarnos todo.</strong><br>
+        Incluye: ubicación del predio, dimensiones, tipo de proyecto, problema que enfrentas y cualquier dato relevante.
+        Nuestro equipo leerá tu mensaje y te contactará con una solución personalizada.
+      </span>
+    </div>
+    <textarea class="desc-area" id="userDesc"
+      placeholder="Ejemplo: Tenemos un predio de 5 hectáreas en el municipio de Villa de Reyes, SLP. Queremos perforar un pozo para riego de cultivos. No sabemos si hay agua, a qué profundidad ni qué volumen podríamos obtener. También nos interesa saber si el agua es apta para uso agrícola..."></textarea>
+    <div class="char-hint" style="margin-top:8px; font-size:.82rem; color:var(--gray);">
+      Entre más detalles incluyas, más precisa y rápida será nuestra propuesta técnica. <strong>No hay respuestas incorrectas.</strong>
+    </div>
+    <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
+      <button class="cta-btn" onclick="showSolution()" style="background:var(--teal); box-shadow:0 4px 18px rgba(2,160,161,.35);">
+        <span>🔎</span> Conectar mi solución SEV
+      </button>
+      <button class="reset-btn" style="margin-top:0" onclick="goBack(2)">← Cambiar problema</button>
+    </div>
+  </div>
+
+  <!-- ══ RESULTADO ══ -->
+  <div class="solution-card hidden fade-in" id="solutionCard">
+    <h3><span>✦</span> <span id="solTitle"></span></h3>
+    <div class="sol-sub" id="solSub"></div>
+    <div class="sol-items" id="solItems"></div>
+    <div class="entregables">
+      <h4>📄 ENTREGABLES DEL ESTUDIO SEV</h4>
+      <div class="ent-list">
+        <span class="ent-tag">Interpretación geofísica</span>
+        <span class="ent-tag">Secciones geoeléctricas</span>
+        <span class="ent-tag">Modelo estratigráfico</span>
+        <span class="ent-tag">Recomendaciones técnicas</span>
+        <span class="ent-tag">Informe ejecutivo</span>
+      </div>
+    </div>
+    <div class="cta-wrap">
+      <a id="ctaWA" href="#" target="_blank" class="cta-btn">
+        <span class="wa-icon">💬</span> Solicitar cotización por WhatsApp
+      </a>
+      <div class="cta-note">Respuesta en menos de 24 horas · Sin compromiso</div>
+    </div>
+    <div style="margin-top:16px; text-align:center;">
+      <button class="reset-btn" onclick="resetAll()">← Iniciar nuevo diagnóstico</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>ADMA GEO | Soluciones Geológicas</span> · Ing. Geóloga ADMA L. Silahua<br>
+  📍 San Luis Potosí, SLP · México &nbsp;|&nbsp; 📱 +52 450 115 0638 &nbsp;|&nbsp; ✉ geosil.adma@gmail.com
+</footer>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATOS
+// ════════════════════════════════════════════════════════════
+const CATEGORIES = {
+  agua: {
+    label: "Agua y Pozos",
+    icon: "💧",
+    problems: [
+      { id:"a1", icon:"🕳️", text:"Quiero perforar un pozo pero no sé dónde ni a qué profundidad está el agua" },
+      { id:"a2", icon:"📉", text:"Mi pozo produce menos agua de lo esperado y no sé por qué" },
+      { id:"a3", icon:"🚜", text:"Necesito agua para riego agrícola pero no cuento con pozo" },
+      { id:"a4", icon:"🏭", text:"Requiero abastecimiento de agua para una planta industrial" },
+      { id:"a5", icon:"🏘️", text:"Necesito agua para una comunidad o fraccionamiento" },
+      { id:"a6", icon:"🔄", text:"Quiero rehabilitar un pozo que dejó de funcionar" },
+      { id:"a7", icon:"📐", text:"Necesito definir el área de influencia de mi acuífero" },
+    ]
+  },
+  mineria: {
+    label: "Minería",
+    icon: "⛏️",
+    problems: [
+      { id:"m1", icon:"🗺️", text:"Tengo un área de exploración y no sé dónde enfocar los trabajos" },
+      { id:"m2", icon:"🔩", text:"Quiero identificar estructuras o zonas de alteración en profundidad" },
+      { id:"m3", icon:"🛤️", text:"Necesito planear infraestructura minera (caminos, presas, talleres)" },
+      { id:"m4", icon:"💰", text:"Quiero reducir costos de exploración antes de perforar" },
+      { id:"m5", icon:"🧱", text:"Requiero caracterizar materiales para bancos de materiales" },
+      { id:"m6", icon:"📊", text:"Necesito delimitar contactos litológicos para un modelo geológico" },
+    ]
+  },
+  civil: {
+    label: "Obra Civil",
+    icon: "🏗️",
+    problems: [
+      { id:"c1", icon:"🏠", text:"Voy a construir y no sé cómo está el subsuelo donde cimentaré" },
+      { id:"c2", icon:"🛣️", text:"Requiero información del subsuelo para diseñar carreteras o terracerías" },
+      { id:"c3", icon:"🌉", text:"Necesito caracterizar el subsuelo para un puente o estructura importante" },
+      { id:"c4", icon:"🏗️", text:"Quiero detectar zonas problemáticas antes de construir" },
+      { id:"c5", icon:"💧", text:"Necesito datos para diseñar sistemas de drenaje o alcantarillado" },
+      { id:"c6", icon:"🏢", text:"Voy a construir una planta o nave industrial en un terreno desconocido" },
+    ]
+  },
+  geotecnia: {
+    label: "Geotecnia",
+    icon: "🪨",
+    problems: [
+      { id:"g1", icon:"⚠️", text:"Mi terreno presenta hundimientos o inestabilidad y no sé la causa" },
+      { id:"g2", icon:"🔍", text:"Necesito complementar un estudio geotécnico con información del subsuelo" },
+      { id:"g3", icon:"📏", text:"Requiero conocer la profundidad de la roca o material competente" },
+      { id:"g4", icon:"🌊", text:"Quiero evaluar el riesgo de licuefacción o saturación del subsuelo" },
+      { id:"g5", icon:"🏔️", text:"Tengo un talud o ladera con riesgo de deslizamiento" },
+      { id:"g6", icon:"🗑️", text:"Necesito evaluar un sitio para disposición de residuos (relleno sanitario)" },
+    ]
+  },
+  ambiental: {
+    label: "Ambiental",
+    icon: "🌿",
+    problems: [
+      { id:"e1", icon:"☣️", text:"Sospecho que hay contaminación en el subsuelo o acuífero" },
+      { id:"e2", icon:"🗑️", text:"Necesito evaluar si un sitio es apto para disposición de residuos" },
+      { id:"e3", icon:"🔬", text:"Quiero delimitar una pluma de contaminación" },
+      { id:"e4", icon:"📋", text:"Requiero un estudio para cumplir con normativa ambiental (MIA, EDT)" },
+      { id:"e5", icon:"🌱", text:"Necesito monitorear el avance de una remediación ambiental" },
+      { id:"e6", icon:"💧", text:"Quiero proteger mi fuente de agua de posible contaminación" },
+    ]
+  },
+  energia: {
+    label: "Energía",
+    icon: "⚡",
+    problems: [
+      { id:"en1", icon:"⚡", text:"Necesito datos de resistividad del subsuelo para puesta a tierra eléctrica" },
+      { id:"en2", icon:"🔌", text:"Quiero planear el trazo de una línea de transmisión eléctrica" },
+      { id:"en3", icon:"☀️", text:"Voy a instalar un parque solar y requiero información del terreno" },
+      { id:"en4", icon:"💨", text:"Necesito caracterizar el subsuelo para cimentación de aerogeneradores" },
+      { id:"en5", icon:"🛢️", text:"Requiero estudios preliminares para infraestructura de hidrocarburos" },
+      { id:"en6", icon:"🏭", text:"Voy a construir una subestación eléctrica y necesito evaluar el terreno" },
+    ]
+  },
+  gas: {
+    label: "Gas Natural e Hidrocarburos",
+    icon: "🔥",
+    problems: [
+      { id:"g1", icon:"🗺️", text:"Necesito identificar estructuras geológicas favorables para acumulación de gas" },
+      { id:"g2", icon:"📐", text:"Quiero conocer la estratigrafía del subsuelo antes de perforar un pozo exploratorio" },
+      { id:"g3", icon:"🔩", text:"Requiero localizar o verificar el trazo de tuberías enterradas de gas" },
+      { id:"g4", icon:"⚠️", text:"Necesito evaluar el riesgo de corrosión del suelo en ductos existentes o proyectados" },
+      { id:"g5", icon:"🏗️", text:"Voy a construir infraestructura para gas y necesito caracterizar el terreno" },
+      { id:"g6", icon:"🌋", text:"Quiero identificar zonas de falla o fracturamiento que puedan afectar ductos" },
+      { id:"g7", icon:"🛢️", text:"Necesito una línea base geológica para un proyecto de exploración de hidrocarburos" },
+    ]
+  },
+  otro: {
+    label: "Otro / Personalizado",
+    icon: "🔍",
+    problems: [
+      { id:"o1", icon:"🌋", text:"Tengo un proyecto de exploración geológica en general" },
+      { id:"o2", icon:"🏛️", text:"Necesito información del subsuelo para un proyecto arqueológico o patrimonial" },
+      { id:"o3", icon:"🚰", text:"Quiero conocer la viabilidad de construir una planta de tratamiento de agua" },
+      { id:"o4", icon:"📡", text:"Requiero estudios de resistividad para telecomunicaciones o infraestructura" },
+      { id:"o5", icon:"🌾", text:"Tengo un proyecto agropecuario que depende del agua subterránea" },
+      { id:"o6", icon:"❓", text:"Mi caso es diferente — quiero describirlo directamente" },
+    ]
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// SOLUCIONES por problema
+// ════════════════════════════════════════════════════════════
+const SOLUTIONS = {
+  // AGUA
+  a1: { title:"Localización de acuífero para perforación de pozo",
+    sub:"El SEV detecta dónde y a qué profundidad perforar con mayor probabilidad de éxito",
+    items:[
+      { t:"Profundidad y espesor del acuífero", d:"Identificamos la capa saturada, su techo y su base para diseñar el pozo óptimo." },
+      { t:"Ubicación del punto de perforación", d:"Seleccionamos el sitio con mayor potencial hidrogeológico dentro de tu terreno." },
+      { t:"Modelo hidrogeológico preliminar", d:"Visualizamos la distribución de capas y su continuidad lateral." },
+      { t:"Estimación del tipo de material", d:"Diferenciamos gravas, arenas, arcillas y roca para apoyar el diseño del ademe." },
+    ]},
+  a2: { title:"Diagnóstico de pozo con bajo rendimiento",
+    sub:"Evaluamos el entorno del acuífero para entender por qué falla tu pozo",
+    items:[
+      { t:"Caracterización lateral del acuífero", d:"Mapeamos la geometría del acuífero alrededor de tu pozo existente." },
+      { t:"Identificación de nuevas zonas objetivo", d:"Detectamos sectores con mayor saturación para nuevos pozos o intervenciones." },
+      { t:"Evaluación de colmatación o agotamiento", d:"Analizamos si el problema es localizado o una condición regional del acuífero." },
+      { t:"Recomendaciones de rehabilitación", d:"Proponemos acciones concretas: profundización, relocalización o abandono técnico." },
+    ]},
+  a3: { title:"Agua subterránea para riego agrícola",
+    sub:"Definimos la viabilidad hídrica de tu predio antes de invertir en infraestructura",
+    items:[
+      { t:"Existencia y profundidad de agua", d:"Confirmamos si hay acuífero explotable y a qué costo de perforación." },
+      { t:"Calidad inferida del acuífero", d:"La resistividad indica si el agua es dulce, salobre o contaminada." },
+      { t:"Volumen aprovechable estimado", d:"El espesor saturado orienta sobre el caudal potencial del pozo." },
+      { t:"Número y ubicación de pozos", d:"Optimizamos la distribución de pozos para maximizar la extracción." },
+    ]},
+  a4: { title:"Abastecimiento industrial de agua subterránea",
+    sub:"Estudios confiables para dimensionar tu fuente de agua antes de construir",
+    items:[
+      { t:"Caudal potencial del acuífero", d:"Estimamos el rendimiento posible para cumplir con tu demanda industrial." },
+      { t:"Localización de pozos de producción", d:"Determinamos la mejor ubicación para uno o varios pozos de abastecimiento." },
+      { t:"Línea base hidrogeológica", d:"Documentamos el estado natural del acuífero para permisos ambientales (CONAGUA)." },
+      { t:"Modelo para diseño de batería de pozos", d:"Apoyamos el diseño técnico del sistema de captación." },
+    ]},
+  a5: { title:"Agua para comunidades y desarrollos habitacionales",
+    sub:"Garantizamos la viabilidad hídrica desde la planeación del proyecto",
+    items:[
+      { t:"Exploración de acuífero regional", d:"Evaluamos la capacidad de la zona para abastecer la demanda proyectada." },
+      { t:"Ubicación de múltiples sitios de perforación", d:"Distribuimos los puntos de captación para mayor cobertura y seguridad." },
+      { t:"Apoyo para trámites ante CONAGUA", d:"El informe técnico respalda solicitudes de concesión de agua." },
+      { t:"Estudio de variabilidad estacional", d:"Evaluamos el comportamiento del acuífero en temporada seca y lluviosa." },
+    ]},
+  a6: { title:"Rehabilitación de pozo improductivo",
+    sub:"Diagnosticamos la causa del fallo antes de invertir en la rehabilitación",
+    items:[
+      { t:"Evaluación geoeléctrica del entorno", d:"Comparamos el subsuelo actual con el modelo esperado al momento de la perforación." },
+      { t:"Detección de cambios en el acuífero", d:"Identificamos si el nivel estático bajó, el acuífero se agotó o hay colmatación." },
+      { t:"Nuevas zonas de saturación", d:"Localizamos sectores donde reubicar el pozo con garantías de éxito." },
+      { t:"Recomendación técnica fundada", d:"Emitimos opinión profesional sobre si conviene rehabilitar o reubicar." },
+    ]},
+  a7: { title:"Delimitación de área de influencia del acuífero",
+    sub:"Mapeamos la geometría del acuífero para estudios de disponibilidad",
+    items:[
+      { t:"Perfil geoeléctrico del acuífero", d:"Definimos extensión lateral, espesor y límites del cuerpo saturado." },
+      { t:"Identificación de barreras hidráulicas", d:"Detectamos fallas, cambios litológicos o límites que controlan el flujo." },
+      { t:"Modelo conceptual del sistema acuífero", d:"Base técnica para estudios de disponibilidad hídrica y zonas de recarga." },
+      { t:"Soporte para declaratoria de zona de reserva", d:"Información técnica sólida para trámites normativos." },
+    ]},
+
+  // MINERÍA
+  m1: { title:"Exploración geofísica para priorización de áreas",
+    sub:"Reducimos el riesgo económico antes de iniciar tu campaña de perforación",
+    items:[
+      { t:"Contrastes litológicos en profundidad", d:"Diferenciamos unidades geológicas sin perforar, ahorrando tiempo y dinero." },
+      { t:"Identificación de estructuras favorables", d:"Detectamos fallas, contactos y zonas de interés para mineralización." },
+      { t:"Priorización de targets de perforación", d:"Seleccionamos los sitios con mayor potencial para invertir el presupuesto exploratorio." },
+      { t:"Reducción de pozos exploratorios fallidos", d:"Cada SEV evita perforaciones en zonas sin interés geológico." },
+    ]},
+  m2: { title:"Identificación de estructuras y zonas de alteración",
+    sub:"El contraste de resistividades revela lo que no se ve en superficie",
+    items:[
+      { t:"Delimitación de zonas de alteración", d:"Las zonas mineralizadas y alteradas tienen firma eléctrica característica." },
+      { t:"Trazado de fallas y estructuras", d:"Discontinuidades geológicas se expresan como anomalías en las curvas SEV." },
+      { t:"Profundidad de cuerpos de interés", d:"Estimamos la profundidad de blancos para diseño óptimo de perforaciones." },
+      { t:"Correlación con datos de afloramiento", d:"Integramos el SEV con tu geología de superficie para un modelo 3D robusto." },
+    ]},
+  m3: { title:"Planeación de infraestructura minera",
+    sub:"Caracterizamos el subsuelo para diseñar obras con menor riesgo constructivo",
+    items:[
+      { t:"Profundidad de materiales competentes", d:"Localizamos la roca sana para cimentación de talleres, presas y plataformas." },
+      { t:"Identificación de zonas blandas o saturadas", d:"Evitamos sorpresas durante la construcción de terracerías y caminos." },
+      { t:"Caracterización de materiales de construcción", d:"Evaluamos bancos de material para obras civiles dentro de la concesión." },
+      { t:"Diseño informado de drenajes y obras hidráulicas", d:"La variabilidad litológica controla el comportamiento del agua en obra." },
+    ]},
+  m4: { title:"Reducción de costos en campaña exploratoria",
+    sub:"Un SEV cuesta una fracción de un pozo — y puede evitar varios fallidos",
+    items:[
+      { t:"Perforación dirigida y eficiente", d:"Cada metro perforado cuenta. El SEV guía dónde vale la pena perforar." },
+      { t:"Reducción de pozos negativos", d:"Estadísticamente, un buen estudio geofísico reduce entre 30-50% los pozos fallidos." },
+      { t:"Optimización del presupuesto exploratorio", d:"Invertir en SEV antes de perforar siempre es más barato que perforar en seco." },
+      { t:"Generación de base de datos geofísica", d:"Los datos SEV son reutilizables para futuras etapas del proyecto." },
+    ]},
+  m5: { title:"Caracterización de bancos de materiales",
+    sub:"Evaluamos volumen, calidad y extensión de materiales para obra",
+    items:[
+      { t:"Espesor y extensión del banco", d:"Cuantificamos el volumen aprovechable sin excavaciones costosas." },
+      { t:"Calidad inferida del material", d:"La resistividad indica el tipo de material y su potencial uso constructivo." },
+      { t:"Detección de contaminantes o material no apto", d:"Identificamos zonas con contenido de arcilla, humedad o material orgánico." },
+      { t:"Optimización de la explotación", d:"Diseño más eficiente del banco basado en la geometría real del depósito." },
+    ]},
+  m6: { title:"Delimitación de contactos litológicos",
+    sub:"Precisamos la geometría del subsuelo para tu modelo geológico",
+    items:[
+      { t:"Contactos entre unidades litológicas", d:"Los cambios de resistividad marcan los límites entre diferentes rocas y sedimentos." },
+      { t:"Correlación entre sondeos", d:"Trazamos la continuidad lateral de cada unidad geológica entre puntos de control." },
+      { t:"Integración al modelo geológico 3D", d:"Los datos SEV son directamente incorporables a software de modelado geológico." },
+      { t:"Validación de datos de perforación", d:"El SEV interpola entre pozos y valida la continuidad de las unidades." },
+    ]},
+
+  // CIVIL
+  c1: { title:"Caracterización del subsuelo para cimentación",
+    sub:"Conoce las condiciones reales del suelo antes de comprometer el diseño estructural",
+    items:[
+      { t:"Profundidad de estratos competentes", d:"Identificamos la profundidad de la roca o material firme para apoyar la cimentación." },
+      { t:"Detección de zonas blandas o problemáticas", d:"Localizamos bolsones de arcilla, zonas saturadas o materiales colapsibles." },
+      { t:"Variabilidad lateral del subsuelo", d:"Mapeamos la heterogeneidad del subsuelo para un diseño estructural seguro." },
+      { t:"Complemento al estudio geotécnico", d:"El SEV amplía el alcance del sondeo puntual a un perfil continuo." },
+    ]},
+  c2: { title:"Subsuelo para carreteras y terracerías",
+    sub:"Reducimos imprevistos en excavación y compactación antes de iniciar obra",
+    items:[
+      { t:"Perfil litológico a lo largo del trazo", d:"Visualizamos la variación del subsuelo en toda la longitud de la vía." },
+      { t:"Localización de zonas problemáticas", d:"Detectamos fallas, zonas saturadas o materiales inadecuados en el trazo." },
+      { t:"Profundidad de roca para voladuras", d:"Optimizamos los volumenes de corte y los requerimientos de maquinaria." },
+      { t:"Diseño informado de subrasante", d:"La resistividad orienta sobre el comportamiento mecánico del material." },
+    ]},
+  c3: { title:"Subsuelo para puentes y estructuras mayores",
+    sub:"Información geofísica confiable como apoyo al diseño de cimentaciones profundas",
+    items:[
+      { t:"Profundidad y espesor de estratos firmes", d:"Determinamos dónde apoyar pilotes, cajones o cimentaciones profundas." },
+      { t:"Detección de cavidades o zonas kársticas", d:"Identificamos anomalías eléctricas asociadas a cavidades o disolución." },
+      { t:"Variabilidad transversal bajo la estructura", d:"Evaluamos la uniformidad del subsuelo bajo toda la huella de la obra." },
+      { t:"Soporte para diseño de pruebas de carga", d:"Orientamos la ubicación óptima de sondeos SPT y pruebas geotécnicas." },
+    ]},
+  c4: { title:"Detección de zonas problemáticas antes de construir",
+    sub:"Prevenir fallas en obra siempre es más barato que remediarlas después",
+    items:[
+      { t:"Localización de rellenos o basureros enterrados", d:"Los materiales orgánicos tienen resistividades muy bajas y características." },
+      { t:"Detección de tuberías o estructuras soterradas", d:"Anomalías puntuales revelan infraestructura oculta o interferencias." },
+      { t:"Identificación de cavidades o karst", d:"Zonas de baja resistividad anómala pueden indicar oquedades en el subsuelo." },
+      { t:"Mapeo de nivel freático", d:"Conocer la profundidad del agua evita problemas durante la excavación." },
+    ]},
+  c5: { title:"Datos para sistemas de drenaje y alcantarillado",
+    sub:"La permeabilidad inferida del subsuelo es clave para el diseño hidráulico",
+    items:[
+      { t:"Identificación de materiales permeables", d:"Las capas de grava y arena (alta resistividad) facilitan la infiltración." },
+      { t:"Profundidad de la zona no saturada", d:"Dimensionamos la capacidad de absorción disponible en tu sitio." },
+      { t:"Detección de barreras impermeables", d:"Las arcillas (baja resistividad) controlan el movimiento del agua en el subsuelo." },
+      { t:"Riesgo de inundación o encharcamiento", d:"Evaluamos si el subsuelo puede drenar el agua pluvial de forma natural." },
+    ]},
+  c6: { title:"Subsuelo para plantas e instalaciones industriales",
+    sub:"Caracterización confiable para cumplir con normas de cimentación y protección ambiental",
+    items:[
+      { t:"Capacidad portante del suelo", d:"Orientamos el tipo de cimentación más adecuado para cargas industriales pesadas." },
+      { t:"Profundidad del nivel freático", d:"Evaluamos el riesgo de intrusión de agua en sótanos o cimientos." },
+      { t:"Evaluación de riesgo de contaminación", d:"Verificamos que el subsuelo proporcione confinamiento natural adecuado." },
+      { t:"Línea base previa a operaciones", d:"Documentamos el estado inicial del subsuelo para cumplimiento normativo." },
+    ]},
+
+  // GEOTECNIA
+  g1: { title:"Diagnóstico de hundimientos e inestabilidad",
+    sub:"Identificamos la causa geológica del problema para una solución efectiva",
+    items:[
+      { t:"Detección de zonas de relleno o suelo blando", d:"Los hundimientos frecuentemente ocurren sobre materiales compresibles." },
+      { t:"Identificación del nivel freático", d:"La saturación del subsuelo es causa común de asentamientos diferenciales." },
+      { t:"Localización de la zona problemática", d:"Delimitamos la extensión horizontal y vertical del área afectada." },
+      { t:"Información para remediación", d:"Orientamos las medidas correctivas: compactación, drenaje, inyecciones o recimentación." },
+    ]},
+  g2: { title:"Complemento geofísico para estudio geotécnico",
+    sub:"El SEV amplía el alcance del sondeo puntual a un modelo de subsuelo continuo",
+    items:[
+      { t:"Correlación entre sondeos SPT", d:"Interpolamos las condiciones del subsuelo entre puntos de muestreo." },
+      { t:"Detección de heterogeneidades laterales", d:"Identificamos zonas que el muestreo puntual no puede detectar." },
+      { t:"Validación del modelo estratigráfico", d:"El SEV confirma o ajusta la interpretación geotécnica de campo." },
+      { t:"Mayor cobertura a menor costo", d:"Un SEV cubre decenas de metros de perfil a una fracción del costo de perforación." },
+    ]},
+  g3: { title:"Profundidad de roca y material competente",
+    sub:"Datos objetivos para diseñar cimentaciones y obras de contención",
+    items:[
+      { t:"Contacto suelo-roca", d:"El contraste de resistividad entre suelo y roca es uno de los más claros en SEV." },
+      { t:"Variabilidad de la profundidad de roca", d:"Mapeamos cómo varía el techo de la roca en toda el área de interés." },
+      { t:"Tipo de roca inferido", d:"Diferenciamos roca fracturada, meterorizada y sana por sus propiedades eléctricas." },
+      { t:"Diseño de cimentaciones y pilotes", d:"La profundidad real de la roca optimiza la longitud y costo de los pilotes." },
+    ]},
+  g4: { title:"Riesgo de saturación y licuefacción",
+    sub:"Evaluamos la susceptibilidad del subsuelo antes de que ocurra un evento sísmico",
+    items:[
+      { t:"Profundidad del nivel freático", d:"La saturación superficial aumenta el riesgo de licuefacción ante sismos." },
+      { t:"Identificación de depósitos arenosos saturados", d:"Materiales con alta porosidad y saturación son los más susceptibles." },
+      { t:"Extensión de zonas de riesgo", d:"Delimitamos las áreas con mayor vulnerabilidad dentro del predio." },
+      { t:"Información para diseño sísmico", d:"Los datos de subsuelo son insumo clave para el análisis de respuesta sísmica del sitio." },
+    ]},
+  g5: { title:"Estabilidad de taludes y laderas",
+    sub:"Identificamos las condiciones que favorecen la inestabilidad de la ladera",
+    items:[
+      { t:"Localización de planos de debilidad", d:"Contactos litológicos y fracturas se expresan como anomalías eléctricas." },
+      { t:"Profundidad de la superficie de falla potencial", d:"Determinamos hasta dónde llega la zona inestable para diseñar la corrección." },
+      { t:"Detección de infiltración y zonas saturadas", d:"El agua es el factor desestabilizador más común — la localizamos con SEV." },
+      { t:"Monitoreo a largo plazo", d:"Los SEV repetidos detectan cambios en la saturación antes de que ocurra el deslizamiento." },
+    ]},
+  g6: { title:"Evaluación de sitio para relleno sanitario",
+    sub:"Cumplimiento de NOM-083 mediante caracterización geofísica del subsuelo",
+    items:[
+      { t:"Permeabilidad inferida del subsuelo", d:"Confirmamos la presencia de arcillas o materiales de baja conductividad hidráulica." },
+      { t:"Espesor de la capa de confinamiento natural", d:"Verificamos que el terreno cumple con el espesor mínimo requerido por norma." },
+      { t:"Profundidad del nivel freático", d:"Garantizamos la separación mínima entre residuos y agua subterránea." },
+      { t:"Extensión de la zona apta", d:"Delimitamos el área que cumple con los requisitos para disposición final." },
+    ]},
+
+  // AMBIENTAL
+  e1: { title:"Detección de contaminación en subsuelo",
+    sub:"Localizamos anomalías eléctricas asociadas a la presencia de contaminantes",
+    items:[
+      { t:"Detección de anomalías de resistividad", d:"Los lixiviados y contaminantes iónicos reducen la resistividad del subsuelo." },
+      { t:"Delimitación preliminar de la pluma", d:"Establecemos la extensión horizontal y vertical de la zona afectada." },
+      { t:"Comparación con zona no impactada", d:"Usamos áreas control para calibrar el contraste de la anomalía." },
+      { t:"Monitoreo temporal de la contaminación", d:"SEV repetidos detectan si la pluma avanza, se estabiliza o retrocede." },
+    ]},
+  e2: { title:"Evaluación de aptitud para disposición de residuos",
+    sub:"Caracterización geofísica para cumplimiento normativo ambiental",
+    items:[
+      { t:"Confirmación de confinamiento natural", d:"Verificamos la existencia y espesor de materiales de baja permeabilidad." },
+      { t:"Profundidad del acuífero más somero", d:"Garantizamos la separación mínima requerida por NOM-083." },
+      { t:"Evaluación de riesgo de migración", d:"Identificamos vías preferenciales de flujo que podrían facilitar la contaminación." },
+      { t:"Soporte para Manifiesto de Impacto Ambiental", d:"El informe técnico respalda la MIA ante autoridades ambientales." },
+    ]},
+  e3: { title:"Delimitación de pluma de contaminantes",
+    sub:"Mapeamos la distribución de contaminantes en el subsuelo",
+    items:[
+      { t:"Perfil 2D de resistividad", d:"Visualizamos la forma y extensión de la zona contaminada en profundidad." },
+      { t:"Identificación del núcleo de mayor concentración", d:"Las resistividades más bajas coinciden generalmente con las zonas más impactadas." },
+      { t:"Dirección preferencial de migración", d:"Orientamos la pluma hacia donde se dirige el contaminante para monitorear pozos aguas abajo." },
+      { t:"Volumen de subsuelo afectado", d:"Calculamos el volumen de suelo a remediar para dimensionar el plan de intervención." },
+    ]},
+  e4: { title:"Estudios para cumplimiento normativo ambiental",
+    sub:"Información técnica sólida para tramitar permisos y licencias ambientales",
+    items:[
+      { t:"Caracterización del subsuelo para MIA", d:"Documentamos las condiciones geológicas e hidrogeológicas del sitio." },
+      { t:"Línea base geofísica previa a operaciones", d:"Registramos el estado natural del subsuelo antes de cualquier actividad." },
+      { t:"Evaluación de vulnerabilidad del acuífero", d:"Determinamos el riesgo de contaminación del agua subterránea en el sitio." },
+      { t:"Informe técnico con valor legal", d:"Nuestros reportes son elaborados por profesionistas certificados y tienen respaldo técnico." },
+    ]},
+  e5: { title:"Monitoreo de remediación ambiental",
+    sub:"Seguimiento objetivo y cuantificable de la evolución del sitio remediado",
+    items:[
+      { t:"SEV de monitoreo temporal", d:"Mediciones repetidas en los mismos puntos detectan cambios en el subsuelo." },
+      { t:"Evaluación del avance de la limpieza", d:"Comparamos resistividades antes, durante y después del proceso de remediación." },
+      { t:"Verificación de efectividad del tratamiento", d:"Confirmamos si el contaminante disminuyó o si la pluma se reactivó." },
+      { t:"Informe de seguimiento para autoridades", d:"Documentamos el progreso para reportes ante SEMARNAT o PROFEPA." },
+    ]},
+  e6: { title:"Protección de fuente de agua subterránea",
+    sub:"Delimitamos zonas de protección para tu pozo o manantial",
+    items:[
+      { t:"Caracterización del área de captación", d:"Definimos desde dónde se recarga el acuífero que abastece tu fuente." },
+      { t:"Identificación de vías de contaminación", d:"Localizamos fracturas, zonas de recarga directa y zonas de vulnerabilidad." },
+      { t:"Delimitación de zona de protección", d:"Establecemos el área mínima a resguardar alrededor de tu fuente de agua." },
+      { t:"Información para ordenamiento territorial", d:"Los datos apoyan decisiones de uso de suelo y gestión del recurso hídrico." },
+    ]},
+
+  // ENERGÍA
+  en1: { title:"Resistividad del suelo para puesta a tierra eléctrica",
+    sub:"Medición precisa de la resistividad del subsuelo conforme a normas IEC/IEEE",
+    items:[
+      { t:"Medición de resistividad aparente del suelo", d:"Obtenemos el parámetro fundamental para diseñar sistemas de puesta a tierra (earthing)." },
+      { t:"Modelo de subsuelo de dos o más capas", d:"El modelo estratificado mejora la precisión del diseño respecto a la medición simple." },
+      { t:"Datos para software de diseño de mallas", d:"Entregamos los parámetros en el formato requerido por ETAP, CYMGRD u otro." },
+      { t:"Cumplimiento de norma NMX-J-549 y NOM-001-SEDE", d:"El estudio respalda el diseño ante autoridades eléctricas." },
+    ]},
+  en2: { title:"Planificación de líneas de transmisión eléctrica",
+    sub:"Información del subsuelo a lo largo del trazo para optimizar el proyecto",
+    items:[
+      { t:"Perfil de resistividad del trazo", d:"Caracterizamos el subsuelo en toda la longitud de la línea proyectada." },
+      { t:"Localización de zonas problemáticas", d:"Detectamos rellenos, suelos blandos o zonas saturadas que compliquen la cimentación de torres." },
+      { t:"Datos para cimentación de torres y postes", d:"La profundidad de roca y la resistividad orientan el diseño de las estructuras de soporte." },
+      { t:"Información para el sistema de puesta a tierra", d:"Cada torre requiere un sistema de tierra eficiente basado en la resistividad local." },
+    ]},
+  en3: { title:"Subsuelo para parque solar fotovoltaico",
+    sub:"Caracterización del terreno para cimentación de paneles y subestación",
+    items:[
+      { t:"Capacidad portante del suelo para hincado", d:"Evaluamos si el terreno permite el hincado de postes sin cimentaciones especiales." },
+      { t:"Profundidad de roca y obstáculos", d:"Detectamos roca superficial que impediría el hincado mecánico de estructuras." },
+      { t:"Resistividad para el sistema de tierra", d:"Diseñamos la malla de puesta a tierra de la subestación del parque." },
+      { t:"Variabilidad del subsuelo en el área del parque", d:"Mapeamos heterogeneidades para un diseño uniforme y seguro." },
+    ]},
+  en4: { title:"Cimentación de aerogeneradores",
+    sub:"El subsuelo bajo un aerogenerador debe caracterizarse con precisión por las cargas dinámicas",
+    items:[
+      { t:"Profundidad de roca o material competente", d:"Los aerogeneradores requieren cimentaciones profundas sobre suelo firme." },
+      { t:"Variabilidad lateral del subsuelo", d:"Garantizamos uniformidad en la respuesta del suelo bajo la cimentación." },
+      { t:"Detección de zonas blandas o saturadas", d:"Evitamos asientos diferenciales que pondrían en riesgo la estructura." },
+      { t:"Información para análisis de respuesta dinámica", d:"El perfil de velocidades de onda (inferido) apoya el análisis sísmico-estructural." },
+    ]},
+  en5: { title:"Infraestructura para hidrocarburos",
+    sub:"Caracterización geofísica previa a la construcción de ductos e instalaciones",
+    items:[
+      { t:"Perfil del subsuelo a lo largo del trazo de ductos", d:"Identificamos cambios litológicos, zonas problemáticas y profundidad de roca." },
+      { t:"Evaluación de corrosividad del suelo", d:"La resistividad es el indicador primario de la agresividad del suelo hacia el acero." },
+      { t:"Diseño de protección catódica", d:"Los datos de resistividad son insumo directo para el diseño de protección catódica." },
+      { t:"Localización de cruces problemáticos", d:"Caracterizamos el subsuelo en cruces de ríos, carreteras y zonas urbanas." },
+    ]},
+  en6: { title:"Subestación eléctrica — estudio de suelos",
+    sub:"El diseño del sistema de puesta a tierra de una subestación depende del SEV",
+    items:[
+      { t:"Medición detallada de resistividad en el predio", d:"Realizamos múltiples SEV en la huella de la subestación para un modelo completo." },
+      { t:"Modelo de capas para diseño de malla de tierra", d:"Entregamos el modelo estratificado en formato compatible con software de diseño." },
+      { t:"Evaluación de uniformidad del terreno", d:"Detectamos variaciones que afecten la eficacia de la malla de tierra." },
+      { t:"Soporte para memoria de cálculo del proyecto eléctrico", d:"El informe respalda la ingeniería de la subestación ante la CFE o el CENACE." },
+    ]},
+
+  // OTRO
+  o1: { title:"Exploración geológica general",
+    sub:"El SEV aporta información valiosa en cualquier proyecto donde el subsuelo sea relevante",
+    items:[
+      { t:"Caracterización litológica del subsuelo", d:"Identificamos capas con diferentes propiedades eléctricas para correlación geológica." },
+      { t:"Profundidades de interés geológico", d:"Determinamos espesores y profundidades de unidades relevantes para tu proyecto." },
+      { t:"Base para el modelo geológico", d:"Los SEV complementan levantamientos de campo, mapeo y perforaciones." },
+      { t:"Adaptado a tus objetivos", d:"El diseño del estudio se ajusta al objetivo específico de tu proyecto." },
+    ]},
+  o2: { title:"Proyectos arqueológicos y patrimoniales",
+    sub:"Método no invasivo ideal para caracterizar el subsuelo en sitios sensibles",
+    items:[
+      { t:"Detección de anomalías en el subsuelo", d:"Estructuras enterradas, rellenos antrópicos y pisos generan contrastes eléctricos." },
+      { t:"Sin daño al registro arqueológico", d:"El SEV no requiere excavación — solo se colocan electrodos en superficie." },
+      { t:"Definición de áreas de interés prioritario", d:"Delimitamos zonas para enfocas las excavaciones controladas." },
+      { t:"Caracterización de sedimentos de relleno", d:"Identificamos secuencias estratigráficas que contextualizan los hallazgos." },
+    ]},
+  o3: { title:"Viabilidad para planta de tratamiento de agua",
+    sub:"Evaluamos las condiciones del terreno antes de diseñar la infraestructura hidráulica",
+    items:[
+      { t:"Caracterización del subsuelo de la planta", d:"Determinamos las condiciones para cimentación y sistemas de filtrado." },
+      { t:"Permeabilidad del suelo para lagunas de tratamiento", d:"Evaluamos si el terreno puede contener el agua sin geomembrana o si la requiere." },
+      { t:"Localización de agua subterránea", d:"Verificamos la profundidad del acuífero para evitar contaminación cruzada." },
+      { t:"Cumplimiento con normas ambientales", d:"Documentamos que el sitio cumple con los requisitos de NOM aplicables." },
+    ]},
+  o4: { title:"Resistividad para telecomunicaciones e infraestructura",
+    sub:"Mediciones de resistividad para diseño de sistemas de tierra y tendido de cables",
+    items:[
+      { t:"Resistividad para puesta a tierra de torres", d:"Torres de telecomunicación requieren sistemas de tierra eficientes basados en la resistividad local." },
+      { t:"Perfil del subsuelo para tendido de fibra óptica", d:"Identificamos zonas con roca superficial u obstáculos para el tendido subterráneo." },
+      { t:"Localización de infraestructura soterrada", d:"Detectamos cables, tuberías o estructuras que puedan interferir con la obra." },
+      { t:"Datos para el diseño de apantallamiento", d:"La resistividad del suelo determina la eficacia de los sistemas de protección contra rayos." },
+    ]},
+  o5: { title:"Agua subterránea para proyectos agropecuarios",
+    sub:"Garantizamos la disponibilidad hídrica de tu proyecto desde la planeación",
+    items:[
+      { t:"Viabilidad de perforación de pozos", d:"Confirmamos si hay acuífero explotable antes de comprometer la inversión." },
+      { t:"Profundidad y caudal potencial", d:"Dimensionamos los pozos para cubrir la demanda de riego o ganadería." },
+      { t:"Calidad inferida del agua", d:"La resistividad indica si el agua subterránea es apta para uso agropecuario." },
+      { t:"Distribución de pozos en el predio", d:"Optimizamos la red de pozos para maximizar la cobertura de riego." },
+    ]},
+  o6: { title:"Tu caso es único — cuéntanoslo",
+    sub:"Tenemos experiencia en proyectos no convencionales. Escríbenos directamente.",
+    items:[
+      { t:"Evaluación personalizada sin costo", d:"Analizamos tu caso específico y te decimos si el SEV puede ayudarte." },
+      { t:"Propuesta técnica a la medida", d:"Diseñamos el estudio con los objetivos, presupuesto y plazo de tu proyecto." },
+      { t:"Atención directa con la Ing. Geóloga", d:"Hablas directamente con la especialista — sin intermediarios." },
+      { t:"Respuesta en menos de 24 horas", d:"Contáctanos hoy y tendrás una respuesta técnica antes de mañana." },
+    ]},
+
+  // GAS NATURAL E HIDROCARBUROS
+  g1: { title:"Identificación de estructuras geológicas favorables para gas",
+    sub:"El SEV detecta contrastes litológicos y estructuras en profundidad que orientan la exploración",
+    items:[
+      { t:"Identificación de contrastes litológicos en profundidad" },
+      { t:"Delimitación de estructuras anticlinales o de trampa" },
+      { t:"Detección de zonas de fracturamiento o fallas" },
+      { t:"Estimación de profundidad de unidades de interés" },
+      { t:"Modelo estratigráfico preliminar del subsuelo" },
+    ]},
+  g2: { title:"Estratigrafía del subsuelo para pozo exploratorio de gas",
+    sub:"Caracterizamos el subsuelo antes de comprometer el presupuesto de perforación",
+    items:[
+      { t:"Secuencia estratigráfica inferida del subsuelo" },
+      { t:"Profundidad y espesor de unidades geológicas" },
+      { t:"Identificación de horizontes de interés potencial" },
+      { t:"Detección de zonas de alta porosidad o fracturamiento" },
+      { t:"Modelo de capas para diseño del programa de perforación" },
+    ]},
+  g3: { title:"Localización y verificación de tuberías enterradas",
+    sub:"El SEV detecta anomalías eléctricas asociadas a ductos e infraestructura soterrada",
+    items:[
+      { t:"Detección de anomalías asociadas a metales o materiales conductores" },
+      { t:"Estimación de profundidad de tuberías enterradas" },
+      { t:"Verificación del trazo de ductos existentes" },
+      { t:"Identificación de interferencias con otras estructuras subterráneas" },
+      { t:"Perfil del subsuelo a lo largo del trazo del ducto" },
+    ]},
+  g4: { title:"Evaluación de corrosividad del suelo en ductos de gas",
+    sub:"La resistividad eléctrica es el indicador primario de agresividad del suelo hacia el acero",
+    items:[
+      { t:"Medición de resistividad del suelo a profundidad" },
+      { t:"Identificación de zonas de baja resistividad — mayor riesgo corrosivo" },
+      { t:"Perfil de corrosividad a lo largo del trazo del ducto" },
+      { t:"Datos para diseño de sistema de protección catódica" },
+      { t:"Detección de zonas húmedas o saturadas de alto riesgo" },
+    ]},
+  g5: { title:"Caracterización del terreno para infraestructura de gas",
+    sub:"Información del subsuelo para diseñar con menor riesgo obras e instalaciones de gas",
+    items:[
+      { t:"Profundidad de materiales competentes para cimentación" },
+      { t:"Detección de zonas blandas, saturadas o problemáticas" },
+      { t:"Variabilidad litológica a lo largo del trazo de ductos" },
+      { t:"Identificación de nivel freático" },
+      { t:"Perfil del subsuelo en cruces de ríos, carreteras o zonas urbanas" },
+    ]},
+  g6: { title:"Detección de fallas y fracturamiento en zonas con ductos",
+    sub:"Las discontinuidades geológicas son riesgo directo para la integridad de ductos enterrados",
+    items:[
+      { t:"Identificación de zonas de fracturamiento o fallas activas" },
+      { t:"Detección de contactos litológicos abruptos" },
+      { t:"Evaluación de continuidad de estratos a lo largo del trazo" },
+      { t:"Localización de zonas de inestabilidad potencial" },
+      { t:"Información para análisis de integridad de ductos" },
+    ]},
+  g7: { title:"Línea base geológica para exploración de hidrocarburos",
+    sub:"Documentamos las condiciones naturales del subsuelo antes de iniciar operaciones",
+    items:[
+      { t:"Modelo estratigráfico regional del área de interés" },
+      { t:"Identificación de unidades geológicas y sus propiedades eléctricas" },
+      { t:"Detección de estructuras de interés para acumulación de hidrocarburos" },
+      { t:"Estimación de profundidades de horizontes objetivo" },
+      { t:"Informe técnico como soporte para EIA y trámites regulatorios" },
+    ]},
+};
+
+// ════════════════════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════════════════════
+let selectedCat = null;
+let selectedProb = null;
+
+// ════════════════════════════════════════════════════════════
+// PASO 1 — Selección de categoría
+// ════════════════════════════════════════════════════════════
+function selectCat(cat) {
+  selectedCat = cat;
+  selectedProb = null;
+
+  // Highlight selected
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('cat-' + cat).classList.add('selected');
+
+  // Mostrar input "otro"
+  const otroInput = document.getElementById('otroInput');
+  if (cat === 'otro') {
+    otroInput.classList.remove('hidden');
+    otroInput.focus();
+  } else {
+    otroInput.classList.add('hidden');
+  }
+
+  // Avanzar a paso 2
+  setTimeout(() => goTo(2), 300);
+}
+
+// ════════════════════════════════════════════════════════════
+// PASO 2 — Selección de problema
+// ════════════════════════════════════════════════════════════
+function buildStep2() {
+  const data = CATEGORIES[selectedCat];
+  document.getElementById('step2Title').textContent =
+    '¿Cuál es tu problema en ' + data.label + '?';
+
+  const list = document.getElementById('probList');
+  list.innerHTML = '';
+  data.problems.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'prob-btn';
+    btn.id = 'prob-' + p.id;
+    btn.innerHTML = `<span class="pb-icon">${p.icon}</span><span>${p.text}</span>`;
+    btn.onclick = () => selectProb(p.id);
+    list.appendChild(btn);
+  });
+}
+
+function selectProb(id) {
+  selectedProb = id;
+  document.querySelectorAll('.prob-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('prob-' + id).classList.add('selected');
+  setTimeout(() => goTo(3), 300);
+}
+
+// ════════════════════════════════════════════════════════════
+// MOSTRAR SOLUCIÓN
+// ════════════════════════════════════════════════════════════
+function showSolution() {
+  const sol = SOLUTIONS[selectedProb];
+  if (!sol) return;
+
+  const desc = document.getElementById('userDesc').value.trim();
+
+  document.getElementById('solTitle').textContent = sol.title;
+  document.getElementById('solSub').textContent   = sol.sub;
+
+  const itemsEl = document.getElementById('solItems');
+  itemsEl.innerHTML = '';
+  sol.items.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'sol-item';
+    div.innerHTML = `<span class="si-check">✔</span>
+      <div class="si-text"><span class="si-title">${it.t}</span></div>`;
+    itemsEl.appendChild(div);
+  });
+
+  // WhatsApp message
+  const catLabel  = CATEGORIES[selectedCat].label;
+  const probText  = CATEGORIES[selectedCat].problems.find(p => p.id === selectedProb)?.text || '';
+  let waMsg = `Hola ADMA GEO 👋\n\nEstoy interesado en un estudio SEV.\n\n*Área:* ${catLabel}\n*Problema:* ${probText}`;
+  if (desc) waMsg += `\n\n*Detalles adicionales:*\n${desc}`;
+  waMsg += '\n\nMe gustaría recibir una cotización. ¡Gracias!';
+
+  const waLink = `https://wa.me/524501150638?text=${encodeURIComponent(waMsg)}`;
+  document.getElementById('ctaWA').href = waLink;
+
+  // Mostrar
+  const card = document.getElementById('solutionCard');
+  card.classList.remove('hidden');
+  card.classList.add('fade-in');
+  card.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  setProgress(100);
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVEGACIÓN
+// ════════════════════════════════════════════════════════════
+function goTo(step) {
+  if (step === 2) buildStep2();
+
+  const steps = { 1:'step1', 2:'step2', 3:'step3' };
+  // Mostrar el step
+  Object.entries(steps).forEach(([n, id]) => {
+    const el = document.getElementById(id);
+    if (parseInt(n) === step) {
+      el.classList.remove('hidden');
+      el.classList.add('fade-in');
+      el.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+    // No ocultamos los anteriores — se van quedando visible (tipo wizard acumulativo)
+  });
+
+  // Ocultar solución si volvemos atrás
+  if (step < 4) {
+    document.getElementById('solutionCard').classList.add('hidden');
+  }
+
+  const pct = step === 1 ? 10 : step === 2 ? 40 : 70;
+  setProgress(pct);
+}
+
+function goBack(step) {
+  if (step === 1) {
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('solutionCard').classList.add('hidden');
+    setProgress(10);
+  } else if (step === 2) {
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('solutionCard').classList.add('hidden');
+    setProgress(40);
+  }
+}
+
+function resetAll() {
+  selectedCat = null; selectedProb = null;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('otroInput').classList.add('hidden');
+  document.getElementById('otroInput').value = '';
+  document.getElementById('userDesc').value = '';
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('solutionCard').classList.add('hidden');
+  setProgress(10);
+  document.getElementById('step1').scrollIntoView({ behavior:'smooth' });
+}
+
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+</script>
+</body>
+</html>
